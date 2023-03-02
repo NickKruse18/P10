@@ -62,35 +62,6 @@ CopIndep = function(X){
   return(2-2*pnorm(tau))
 }
 
-ES = function(w,X,alpha){
-  return(-mean(sort(X%*%c(w,1-sum(w)))[1:ceiling(alpha*length(X[,1]))]))
-}
-
-Assets = readRDS("Assets")
-
-Assets.A = AlignAssets(Assets)
-
-Assets.same = SameTime(Assets.A)
-
-NPC = NPCVAR(Assets.same[,-1],c(2),1:2)
-NPCPortfolio(100000,10,NPC)
-hist(NPCSample(10000,10,NPC)[,3])
-
-GC = GCVAR(Assets.same[,2:3])
-GCPortfolio(100000,10,GC)
-hist(GCSample(10000,10,GC)[,1])
-
-NPC = NPCVAR(Assets.same[,-1],c(),1:12)
-NPCPortfolio(100000,10,NPC)
-
-GC = GCVAR(Assets.same[,-1])
-GCPortfolio(100000,10,GC)
-
-
-
-
-
-
 
 
 

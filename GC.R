@@ -16,3 +16,11 @@ GCPortfolio = function(n,steps,GC){
   w = optim(rep(1/d,d-1),ES,control=list(warn.1d.NelderMead=FALSE),X=X,alpha=0.05)
   return(w)
 }
+
+GCCombination = function(Assets,which){
+  Assets.Full = Assets[[which[1]]]
+  if(length(which)>1){ for(i in 2:length(which)){ Assets.Full = rbind(Assets.Full,Assets[[which[i]]]) } }
+  return(GCVAR(Assets.Full[,-1]))
+}
+
+

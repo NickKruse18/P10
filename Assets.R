@@ -1,5 +1,5 @@
 
-GetTickerDay = function(ticker,time){
+AssetsTickerDay = function(ticker,time){
   #CvQbcdE7syVkOIP5dAqccpOeK2o0iup4
   #CBQouP6k8C92g2XWhofZB5PCGgxI6lOk
   API = paste0("https://api.polygon.io/v2/aggs/ticker/",ticker, "/range/1/minute/")
@@ -12,7 +12,7 @@ GetTickerDay = function(ticker,time){
   return(Data)
 }
 
-GetTickerMonth = function(ticker,month){
+AssetsTickerMonth = function(ticker,month){
   mon = as.POSIXlt(month)$mon;  start = 0; end = 0;  w = TRUE
   while(w){
     w = FALSE
@@ -28,13 +28,13 @@ GetTickerMonth = function(ticker,month){
   for(i in (start+1):(end-1)){
     if(((i+s)%%7==0) | ((i+s)%%7==6)){ next }
     print(month+i)
-    Data = rbind(Data,GetTickerDay(ticker,month+i))
+    Data = rbind(Data,AssetsTickerDay(ticker,month+i))
     Sys.sleep(12)
   }
   return(Data)
 }
 
-AlignAssets = function(Assets){
+AssetsAlign = function(Assets){
   d = length(Assets);  times = cbind(Assets[[1]][,1],Assets[[1]][,2],matrix(0,length(Assets[[1]][,1]),d-1))
   for(i in 2:d){
     t = 1;  D = Assets[[i]];  j = 1
@@ -50,7 +50,8 @@ AlignAssets = function(Assets){
   return(times)
 }
 
-SameTime = function(Assets){
+AssetsSame = function(Assets){
+  Assets[is.na(Assets)] = 0
   Assets[,-1] = log(Assets[,-1]);  Assets[,1] = cumsum(Assets[,1])
   Miss = c(0,(1:length(Assets[,1]))[Assets[,-1]%*%rep(1,length(Assets[1,])-1)==-Inf],length(Assets[,1])+1)
   DiffAssets = Assets;  ind = 0
@@ -64,15 +65,39 @@ SameTime = function(Assets){
   return(DiffAssets)
 }
 
-Assets = list()
-for(i in 1:12){
-  I = c("SPY","NDAQ","AMD","AAPL","TSLA","NVO","NVDA","BA","LMT","GD","JPM","WFC")
-  Assets = append(Assets,list(GetTickerMonth(I[i],as.Date("2022-01-28"))))
+AssetsRead = function(){
+  Assets = list()
+  for(i in c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")){
+    Assets = append(Assets,list(readRDS(paste0("Assets/Assets",i))))
+  }
+  return(Assets)
 }
 
-saveRDS(Assets,"Assets")
+AssetsCombine = function(Assets){
+  d = length(Assets);  Assets.New = list()
+  for(i in 1:d){
+    Assets.New = append(Assets.New,list(AssetsSame(AssetsAlign(Assets[[i]]))))
+  }
+  return(Assets.New)
+}
 
-Assets.A = AlignAssets(Assets)
 
-Assets.same = SameTime(Assets.A)
+Assets = AssetsCombine(AssetsRead())
+I = c("SPY","NDAQ","AMD","AAPL","TSLA","NVO","NVDA","BA","LMT","GD","JPM","WFC")
+IAR = c("Lag SPY","Lag NDAQ","Lag AMD","Lag AAPL","Lag TSLA","Lag NVO","Lag NVDA","Lag BA","Lag LMT","Lag GD","Lag JPM","Lag WFC")
+
+
+#Assets.Oct = list()
+#for(i in 1:12){
+#  I = c("SPY","NDAQ","AMD","AAPL","TSLA","NVO","NVDA","BA","LMT","GD","JPM","WFC")
+#  Assets.Oct = append(Assets.Oct,list(GetTickerMonth(I[i],as.Date("2022-10-01"))))
+#}
+
+#saveRDS(Assets.Oct,"AssetsOct")
+
+
+
+
+
+
 

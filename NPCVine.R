@@ -14,15 +14,18 @@ NPCbi = function(X,m=100,b=0.02){
   return(C)
 }
 
+
 NPCTransform = function(X,Y,C){
-  X[abs(X-1)<0.000001] = 0.999;  Y[abs(Y-1)<0.000001] = 0.999;  X[X<0.000001] = 0.001;  Y[Y<0.000001] = 0.001
+  X[X>0.9999] = 0.9999;  Y[Y>0.9999] = 0.9999#;  X[X<0.000001] = 0.001;  Y[Y<0.000001] = 0.001
   m = length(C[,1]);  n = length(X);  X.T = numeric(n)
   X.I = floor(m*X)+1;  Y.I = floor(m*Y)+1
   dC = (C-rbind(0,C[1:(length(C[1,])-1),]));  dC = cbind(0,dC/(dC[,m]%*%t(rep(1,m))))
+  dC[dC<=0] = 0.0001
   Ind = m*X.I + Y.I - m
   X.T = (X.I-m*X)*dC[Ind] + (1+m*X-X.I)*dC[Ind+m]
   return(X.T)
 }
+
 
 NPCVine = function(X,m=100){
   d = length(X[1,])
@@ -72,6 +75,17 @@ NPCVineGenerate = function(n,VC,m){
   return(X)
 }
 
+NPCVineGenerate = function(n,VC,m){
+  d = length(VC[,1])/m + 1;  X = matrix(0,n,d);  U = matrix(runif(d*n),n,d);  X[,1] = U[,1]
+  for(i in 2:d){
+    X[,i] = U[,i]
+    for(j in (i-1):1){
+      X[,i] = NPCBiGenerate(n,VC[(j*m-m+1):(j*m),((i-j)*m-m+1):((i-j)*m)],cbind(U[,j],X[,i]))[,2]
+    }
+  }
+  return(X)
+}
+
 NPCPredict = function(n,vals,VC,m){
   d = length(VC[,1])/m + 1;  k = length(vals[1,]);  X = U = cbind(vals,matrix(runif((d-k)*n),n,d-k))
   for(i in 2:d){
@@ -90,15 +104,14 @@ NPCPredict = function(n,vals,VC,m){
 }
 
 
+image(NPCVine(pnorm(rmvn(10000,mu=rep(0,3),Sigma=matrix(c(1,0.5,0.4,0.5,1,0.7,0.4,0.7,1),3,3)))))
+
+plot(NPCVineGenerate(10000,NPCVine(pnorm(rmvn(10000,mu=rep(0,3),Sigma=matrix(c(1,0.5,0.4,0.5,1,0.9,0.4,0.9,1),3,3)))),100)[,2:3])
+
+plot(pnorm(rmvn(10000,mu=rep(0,3),Sigma=matrix(c(1,0.5,0.4,0.5,1,0.9,0.4,0.9,1),3,3)))[,2:3])
 
 
-
-
-
-
-
-
-
+I
 
 
 

@@ -47,3 +47,11 @@ NPCPortfolio = function(n,steps,NPC,vals=NULL){
   return(w)
 }
 
+
+NPCCombination = function(Assets,which,ar=c(),sort=c(),m=100){
+  Assets.Full = Assets[[which[1]]]
+  if(length(which)>1){ for(i in 2:length(which)){ Assets.Full = rbind(Assets.Full,Assets[[which[i]]]) } }
+  return(NPCVAR(Assets.Full[,-1],ar,sort,m))
+}
+
+
