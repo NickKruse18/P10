@@ -4,4 +4,6 @@
   library(GeneralizedHyperbolic)
   library(jsonlite)
   library(kdecopula)
+  library(tseries)
+  library(VGAM)
 }

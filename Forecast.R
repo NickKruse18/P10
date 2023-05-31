@@ -28,37 +28,55 @@ ForecastCombine = function(steps,Assets,which,W){
   return(list(P,ES,M))
 }
 
+NPCError = function(n,steps,N,NPC){
+  Ps = c();  ESs = c()
+  for(i in 1:N){
+    time = Sys.time()
+    W = NPCPortfolio(n,steps,NPC)
+    Ps = rbind(Ps,W$par);  ESs = c(ESs,W$value)
+    print(paste0(i," out of ",N,". It took ", round(Sys.time() - time,3), " seconds."))
+  }
+  P.m = rep(1,N)%*%Ps/N;  ES.m = mean(ESs)
+  P.v = sqrt(diag(var(Ps)));  ES.v = sqrt(var(ESs))
+  return(list(list(Ps,P.m,P.v),list(ESs,ES.m,ES.v)))
+}
 
-GC = GCCombination(Assets,1:2)
-W.GC = GCPortfolio(100000,10,GC)
-P.GC = ForecastCombine(10,Assets,3:12,W.GC)
+ESTest = function(Returns,which,W,plot=FALSE){
+  X = c()
+  for(i in which){ X = c(X,Returns[[i]]) }
+  n = length(X);  ES = W$value
+  real = c()
+  for(i in 1:1000){ Y = sort(sample(X,n,TRUE));  real = c(real,-mean(Y[1:floor(0.05*n)])) }
+  I = sort(real)[c(25,975)];  test = FALSE
+  if((ES > I[1]) & (ES < I[2])){ test = TRUE }
+  if(plot){
+    hist(real,40,main="Histogram of Bootstrapped 5% Realized Shortfall",xlab="Shortfall")
+    lines(c(ES,ES),c(0,10000),lty=2,col="red")
+    lines(c(I[1],I[1]),c(0,10000),lty=2,col="blue")
+    lines(c(I[2],I[2]),c(0,10000),lty=2,col="blue")
+  }
+  return(c(I,test))
+}
 
+PortId = function(W,E){
+  df = length(W$par)
+  stat = sum(((E[[1]][[2]]-W$par)/E[[1]][[3]])^2)
+  p = 1-pchisq(stat,df)
+  cstat = sum((solve(t(chol(var(E[[1]][[1]]))))%*%t(E[[1]][[2]]-W$par))^2)
+  cp = 1-pchisq(cstat,df)
+  return(c(df,stat,p,cstat,cp))
+}
 
-NPC = NPCCombination(Assets,1:2,c(),1:12)
-W.NPC = NPCPortfolio(100000,10,NPC)
-P.NPC = ForecastCombine(10,Assets,3:12,W.NPC)
-
-
-NPCAR = NPCCombination(Assets,1:2,c(12),1:12)
-W.NPCAR = NPCPortfolio(100000,10,NPCAR)
-P.NPCAR = ForecastCombine(10,Assets,3:12,W.NPCAR)
-
-P.NPC[[2]]
-P.NPCAR[[2]]
-
-round(1000*P.GC[[2]][[2]],2)
-round(1000*P.NPC[[2]][[2]],2)
-round(1000*P.NPCAR[[2]][[2]],2)
-
-
-sum(W.GC$par)
-sum(W.NPC$par)
-sum(W.NPCAR$par)
-GC[[3]]
-
-
-pbinom(7,10,0.33)
-
-
+PortDist = function(E){
+  d = length(E[[1]][[1]][1,])+1;  n = length(E[[1]][[1]][,1]);  ta = matrix(0,4,d+1)
+  D = cbind(E[[1]][[1]],1-E[[1]][[1]]%*%rep(1,d-1))
+  for(i in 1:d){
+    jb = jarque.bera.test(D[,i])
+    ta[,i] = c(mean(D[,i]),sqrt(var(D[,i])),jb$statistic,jb$p.value)
+  }
+  jb = jarque.bera.test(E[[2]][[1]])
+  ta[,d+1] = c(mean(E[[2]][[1]]),sqrt(var(E[[2]][[1]])),jb$statistic,jb$p.value)
+  return(round(ta,3))
+}
 
 

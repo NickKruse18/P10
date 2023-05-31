@@ -42,11 +42,14 @@ NPCSample = function(n,steps,NPC,vals=NULL){
 }
 
 NPCPortfolio = function(n,steps,NPC,vals=NULL){
+  time = Sys.time()
   ar = NPC[[5]];  X = NPCSample(n,steps,NPC,vals)[,(sum(ar[-1])+1):sum(ar)]
-  w = optim(rep(1/ar[1],ar[1]-1),ES,control=list(warn.1d.NelderMead=FALSE),X=X,alpha=0.05)
+  print(Sys.time() - time)
+  
+  X = X[,match(1:ar[1],NPC[[6]])]
+  w = optim(rep(1/ar[1],ar[1]-1),ES,control=list(warn.1d.NelderMead=FALSE,maxit=500),X=X,alpha=0.05)
   return(w)
 }
-
 
 NPCCombination = function(Assets,which,ar=c(),sort=c(),m=100){
   Assets.Full = Assets[[which[1]]]

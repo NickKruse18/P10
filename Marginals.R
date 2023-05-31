@@ -11,7 +11,7 @@ LinInv = function(x,m=1000){
 }
 
 Lin = function(x,m=1000){
-  x = sort(x);  C = matrix(0,m+1,2);  C[,1] = (0:m)/m*(x[length(x)]-x[1])+x[1];  j = 2;  i = 1
+  x = sort(x);  C = matrix(0,m+1,2);  C[,1] = (0:m)/(m+0.0001)*(x[length(x)]-x[1])+x[1];  j = 2;  i = 1
   while(i <= length(C[,1])){
     if(C[i,1] > x[j]){ j = j + 1;  next; }
     C[i,2] = ((C[i,1]-x[j-1])/(x[j]-x[j-1]) + j-1)/length(x)
@@ -50,6 +50,20 @@ SampleMarginals = function(U,D){
   }
   return(M)
 }
+
+TransformMarginals = function(X,D){
+  d = length(X[1,]);  m = length(D[,1])-1;  M = X;  X = m*t((t(X)-D[1,2*(1:d)-1])/(D[m,2*(1:d)-1]-D[1,2*(1:d)-1]))+1
+  X = pmax(pmin(X, 1000), 1);  X.I = floor(X)
+  for(i in 1:d){
+    M[,i] = (X[,i]-X.I[,i])*D[X.I[,i],2*i] + (1-X[,i]+X.I[,i])*D[X.I[,i]+1,2*i]
+  }
+  return(M)
+}
+
+plot(NPCAR[[1]][,1:2],type="l")
+hist(Assets[[1]][,2])
+TransformMarginals(Assets[[1]][,-1],NPCAR[[1]])[,1]
+hist(TransformMarginals(Assets[[2]][,-1],NPCAR[[1]])[,4])
 
 KTau = function(X){
   X = X[order(X[,1]),];  n = length(X[,1]);  tau = 0

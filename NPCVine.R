@@ -23,6 +23,7 @@ NPCTransform = function(X,Y,C){
   dC[dC<=0] = 0.0001
   Ind = m*X.I + Y.I - m
   X.T = (X.I-m*X)*dC[Ind] + (1+m*X-X.I)*dC[Ind+m]
+  X.T[X.T>0.9999] = 0.9999
   return(X.T)
 }
 
@@ -75,6 +76,23 @@ NPCVineGenerate = function(n,VC,m){
   return(X)
 }
 
+NPCPredict = function(n,vals,VC,m){
+  d = length(VC[,1])/m + 1;  k = length(vals[1,]);  X = U = cbind(vals,matrix(runif((d-k)*n),n,d-k))
+  for(i in 2:d){
+    if(i>k){
+      for(j in (i-1):1){
+        U[,i] = NPCBiGenerate(n,VC[(j*m-m+1):(j*m),((i-j)*m-m+1):((i-j)*m)],U[,c(j,i)])[,2]
+      }
+      X[,i] = U[,i]
+    }
+    if(i == d){ next }
+    for(j in 1:(i-1)){
+      U[,i] = NPCTransform(U[,i],U[,j],VC[(j*m-m+1):(j*m),((i-j)*m-m+1):((i-j)*m)])
+    }
+  }
+  return(X)
+}
+
 NPCVineGenerate = function(n,VC,m){
   d = length(VC[,1])/m + 1;  X = matrix(0,n,d);  U = matrix(runif(d*n),n,d);  X[,1] = U[,1]
   for(i in 2:d){
@@ -88,16 +106,17 @@ NPCVineGenerate = function(n,VC,m){
 
 NPCPredict = function(n,vals,VC,m){
   d = length(VC[,1])/m + 1;  k = length(vals[1,]);  X = U = cbind(vals,matrix(runif((d-k)*n),n,d-k))
-  for(i in 2:d){
-    if(i>k){
-      for(j in (i-1):1){
-        U[,i] = NPCBiGenerate(n,VC[(j*m-m+1):(j*m),((i-j)*m-m+1):((i-j)*m)],U[,c(j,i)])[,2]
+  if(k > 1){
+    for(i in 2:k){
+      for(j in 1:(i-1)){
+        U[,i] = NPCTransform(U[,i],U[,j],VC[(j*m-m+1):(j*m),((i-j)*m-m+1):((i-j)*m)])
       }
-      X[,i] = U[,i]
     }
-    if(i == d){ next }
-    for(j in 1:(i-1)){
-      U[,i] = NPCTransform(U[,i],U[,j],VC[(j*m-m+1):(j*m),((i-j)*m-m+1):((i-j)*m)])
+  }
+  for(i in (k+1):d){
+    X[,i] = U[,i]
+    for(j in (i-1):1){
+      X[,i] = NPCBiGenerate(n,VC[(j*m-m+1):(j*m),((i-j)*m-m+1):((i-j)*m)],cbind(U[,j],X[,i]))[,2]
     }
   }
   return(X)
