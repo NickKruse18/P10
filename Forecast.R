@@ -50,10 +50,10 @@ ESTest = function(Returns,which,W,plot=FALSE){
   I = sort(real)[c(25,975)];  test = FALSE
   if((ES > I[1]) & (ES < I[2])){ test = TRUE }
   if(plot){
-    hist(real,40,main="Histogram of Bootstrapped 5% Realized Shortfall",xlab="Shortfall")
-    lines(c(ES,ES),c(0,10000),lty=2,col="red")
-    lines(c(I[1],I[1]),c(0,10000),lty=2,col="blue")
-    lines(c(I[2],I[2]),c(0,10000),lty=2,col="blue")
+    hist(1000*real,40,main="Histogram of Bootstrapped 5% Realized Shortfall",xlab="Shortfall")
+    lines(1000*c(ES,ES),c(0,10000),lty=2,col="red")
+    lines(1000*c(I[1],I[1]),c(0,10000),lty=2,col="blue")
+    lines(1000*c(I[2],I[2]),c(0,10000),lty=2,col="blue")
   }
   return(c(I,test))
 }
